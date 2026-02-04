@@ -11,18 +11,21 @@ import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import com.example.collegeschedule.ui.schedule.ScheduleScreen
 import com.example.collegeschedule.ui.theme.CollegeScheduleTheme
 
 class MainActivity : ComponentActivity() {
@@ -37,58 +40,47 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@PreviewScreenSizes
+// Определяем пункты навигации
+enum class AppDestinations(
+    val title: String,
+    val icon: ImageVector
+) {
+    HOME("Расписание", Icons.Default.Home),
+    FAVORITES("Избранное", Icons.Default.Favorite),
+    PROFILE("Профиль", Icons.Default.AccountBox)
+}
+
 @Composable
 fun CollegeScheduleApp() {
-    var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
+    var currentDestination by rememberSaveable {
+        mutableStateOf(AppDestinations.HOME)
+    }
 
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            AppDestinations.entries.forEach {
-                item(
-                    icon = {
-                        Icon(
-                            it.icon,
-                            contentDescription = it.label
-                        )
-                    },
-                    label = { Text(it.label) },
-                    selected = it == currentDestination,
-                    onClick = { currentDestination = it }
-                )
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                AppDestinations.values().forEach { destination ->
+                    NavigationBarItem(
+                        icon = { Icon(destination.icon, contentDescription = destination.title) },
+                        label = { Text(destination.title) },
+                        selected = currentDestination == destination,
+                        onClick = { currentDestination = destination }
+                    )
+                }
             }
         }
-    ) {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            Greeting(
-                name = "Android",
-                modifier = Modifier.padding(innerPadding)
-            )
+    ) { paddingValues ->
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            when (currentDestination) {
+                AppDestinations.HOME -> ScheduleScreen()
+                AppDestinations.FAVORITES -> Text("Избранное (заглушка)")
+                AppDestinations.PROFILE -> Text("Профиль (заглушка)")
+            }
         }
-    }
-}
-
-enum class AppDestinations(
-    val label: String,
-    val icon: ImageVector,
-) {
-    HOME("Home", Icons.Default.Home),
-    FAVORITES("Favorites", Icons.Default.Favorite),
-    PROFILE("Profile", Icons.Default.AccountBox),
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    CollegeScheduleTheme {
-        Greeting("Android")
     }
 }
